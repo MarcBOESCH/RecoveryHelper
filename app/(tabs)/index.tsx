@@ -21,10 +21,11 @@ export default function HomeScreen() {
         loadCompletedDates();
     }, []);
 
-    const today: string = new Date().toISOString().split('T')[0];
+    const today: Date = new Date();
+    const todayString: string = getLocalDateString(today);
 
     const currentStreak: number = calculateStreak(completedDates);
-    const completedToday: boolean = completedDates.includes(today);
+    const completedToday: boolean = completedDates.includes(todayString);
 
     return (
         <ThemedView>
@@ -40,7 +41,7 @@ export default function HomeScreen() {
                     styles.completeButton, completedToday && styles.completedButton]}
                            onPress={async () => {
                     if (!completedToday) {
-                        const updatedDates: string[] = [...completedDates, today];
+                        const updatedDates: string[] = [...completedDates, todayString];
                         setCompletedDates(updatedDates);
                         await AsyncStorage.setItem('completedDates', JSON.stringify(updatedDates));
 
@@ -56,19 +57,30 @@ export default function HomeScreen() {
 function calculateStreak(completedDates: string[]): number {
     let streak: number = 0;
     let dateToCheck: Date = new Date();
-    let dateToCheckString: string = dateToCheck.toISOString().split('T')[0];
+    let dateToCheckString: string = getLocalDateString(dateToCheck);
 
     if (!completedDates.includes(dateToCheckString)) {
       dateToCheck.setDate(dateToCheck.getDate() - 1);
-      dateToCheckString = dateToCheck.toISOString().split('T')[0];
+      dateToCheckString = getLocalDateString(dateToCheck);
     }
 
     while (completedDates.includes(dateToCheckString)) {
         streak++;
         dateToCheck.setDate(dateToCheck.getDate() - 1);
-        dateToCheckString = dateToCheck.toISOString().split('T')[0];
+        dateToCheckString = getLocalDateString(dateToCheck);
     }
     return streak;
+}
+
+function getLocalDateString(date: Date): string {
+    const year: number = date.getFullYear();
+    const month: number = date.getMonth() + 1;
+    const day: number = date.getDate();
+
+    const monthString: string = month.toString().padStart(2, '0');
+    const dayString: string = day.toString().padStart(2, '0');
+
+    return `${year}-${monthString}-${dayString}`;
 }
 
 const styles = StyleSheet.create({
