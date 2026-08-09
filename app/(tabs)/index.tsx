@@ -29,7 +29,7 @@ export default function HomeScreen() {
     return (
         <ThemedView>
             <ThemedView style={styles.titleContainer}>
-                <ThemedText type="title">My Streak App</ThemedText>
+                <ThemedText type="title">RecoveryHelper</ThemedText>
             </ThemedView>
             <ThemedView style={styles.streakContainer}>
                 <ThemedText type="subtitle">My Streak</ThemedText>

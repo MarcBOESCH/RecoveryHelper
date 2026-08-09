@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "streak-app",
-    "slug": "streak-app",
+    "name": "RecoveryHelper",
+    "slug": "recovery-helper",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "streakapp",
+    "scheme": "recoveryhelper",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

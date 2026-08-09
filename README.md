@@ -1,40 +1,58 @@
-# Welcome to your Expo app 👋
+# RecoveryHelper
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+RecoveryHelper is a simple daily recovery streak tracker built with Expo and React Native. A user can mark the current day as completed, see the length of their active streak, and keep that progress between sessions with local device storage.
 
-## Get started
+## Current features
 
-1. Install dependencies
+- Mark today's recovery goal as complete.
+- Calculate a streak from consecutive completed days.
+- Persist completed dates locally with AsyncStorage.
+- Follow the device's light or dark color scheme.
+- Run on Android, iOS, and the web from one codebase.
 
-   ```bash
-   npm install
-   ```
+## Requirements
 
-2. Start the app
+- Node.js and npm
+- Expo Go on a physical device, or an Android/iOS simulator
 
-   ```bash
-   npx expo start
-   ```
+## Setup
 
-In the output, you'll find options to open the app in a
+Install the dependencies:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+```bash
+npm install
+```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Start the Expo development server:
 
-## Learn more
+```bash
+npm start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+From the Expo terminal, scan the QR code with Expo Go or choose a simulator. Platform-specific commands are also available:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm run android
+npm run ios
+npm run web
+```
 
-## Join the community
+## Development checks
 
-Join our community of developers creating universal apps.
+```bash
+npm run lint
+npx tsc --noEmit
+npx expo install --check
+npx expo-doctor
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Project structure
+
+- `app/` contains the Expo Router screens and layouts.
+- `components/` contains reusable interface components.
+- `hooks/` and `constants/` contain theme helpers.
+- `assets/images/` contains the application icons and splash assets.
+
+## Data storage
+
+Recovery progress is stored only on the current device under the AsyncStorage key `completedDates`. Clearing the app's local data or uninstalling it removes the saved history. Cloud sync and user accounts are not implemented yet.
