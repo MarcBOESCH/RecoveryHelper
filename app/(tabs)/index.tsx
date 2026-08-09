@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {Pressable, StyleSheet} from 'react-native';
+import {Pressable, ScrollView, StyleSheet} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {ThemedText} from '@/components/themed-text';
@@ -7,6 +7,7 @@ import {ThemedView} from '@/components/themed-view';
 
 export default function HomeScreen() {
     const [completedDates, setCompletedDates] = useState<string[]>([]);
+    const weekdays: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat','Sun'];
 
     // Load completed dates from AsyncStorage
     useEffect(() => {
@@ -23,33 +24,65 @@ export default function HomeScreen() {
 
     const today: Date = new Date();
     const todayString: string = getLocalDateString(today);
+    const currentMonth: number = today.getMonth();
+    const currentYear: number = today.getFullYear();
+
+    const daysInCurrentMonth: (number | null)[] = getDaysInCurrentMonth();
 
     const currentStreak: number = calculateStreak(completedDates);
     const completedToday: boolean = completedDates.includes(todayString);
 
     return (
-        <ThemedView>
-            <ThemedView style={styles.titleContainer}>
-                <ThemedText type="title">RecoveryHelper</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.streakContainer}>
-                <ThemedText type="subtitle">My Streak</ThemedText>
-                <ThemedText type="subtitle">🔥 {currentStreak} days</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.stepContainer}>
-                <Pressable style={() => [
-                    styles.completeButton, completedToday && styles.completedButton]}
-                           onPress={async () => {
-                    if (!completedToday) {
-                        const updatedDates: string[] = [...completedDates, todayString];
-                        setCompletedDates(updatedDates);
-                        await AsyncStorage.setItem('completedDates', JSON.stringify(updatedDates));
+        <ThemedView style={styles.screen}>
+            <ScrollView>
+                <ThemedView style={styles.titleContainer}>
+                    <ThemedText type="title">RecoveryHelper</ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.streakContainer}>
+                    <ThemedText type="subtitle">My Streak</ThemedText>
+                    <ThemedText type="subtitle">🔥 {currentStreak} days</ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.calendarContainer}>
+                    {weekdays.map((day: string) => (
+                        <ThemedText key={day} type="defaultSemiBold" style={styles.calendarDay}>
+                            {day}
+                        </ThemedText>
+                    ))}
+                    {daysInCurrentMonth.map((day: number | null, index: number) => {
+                        if (day === null) {
+                            return (
+                                <ThemedText key={index} style={styles.calendarDay}>
+                                </ThemedText>
+                            )
+                        }
 
-                    }
-                }}>
-                    <ThemedText style={styles.buttonText}>{completedToday ? 'Awesome!' : 'Did you make it?'}</ThemedText>
-                </Pressable>
-            </ThemedView>
+                        const dateForDay = new Date(currentYear, currentMonth, day);
+                        const dateString: string = getLocalDateString(dateForDay)
+                        const completed: boolean = completedDates.includes(dateString);
+                        return (
+                            <ThemedText key={index} type="default" style={styles.calendarDay}>
+                                {completed ? day + ' ✓' : day}
+                            </ThemedText>
+                        );
+                    })}
+                </ThemedView>
+                <ThemedView style={styles.stepContainer}>
+                    <Pressable style={() => [
+                        styles.completeButton, completedToday && styles.completedButton]}
+                               onPress={async () => {
+                                   if (!completedToday) {
+                                       const updatedDates: string[] = [...completedDates, todayString];
+                                       setCompletedDates(updatedDates);
+                                       await AsyncStorage.setItem('completedDates', JSON.stringify(updatedDates));
+
+                                   }
+                               }}>
+                        <ThemedText
+                            style={styles.buttonText}>{completedToday ? 'Awesome!' : 'Did you make it?'}
+                        </ThemedText>
+                    </Pressable>
+                </ThemedView>
+            </ScrollView>
         </ThemedView>
     );
 }
@@ -60,8 +93,8 @@ function calculateStreak(completedDates: string[]): number {
     let dateToCheckString: string = getLocalDateString(dateToCheck);
 
     if (!completedDates.includes(dateToCheckString)) {
-      dateToCheck.setDate(dateToCheck.getDate() - 1);
-      dateToCheckString = getLocalDateString(dateToCheck);
+        dateToCheck.setDate(dateToCheck.getDate() - 1);
+        dateToCheckString = getLocalDateString(dateToCheck);
     }
 
     while (completedDates.includes(dateToCheckString)) {
@@ -83,7 +116,30 @@ function getLocalDateString(date: Date): string {
     return `${year}-${monthString}-${dayString}`;
 }
 
+function getDaysInCurrentMonth(): (number | null)[] {
+    const today: Date = new Date();
+    const month: number = today.getMonth() + 1;
+    const year: number = today.getFullYear();
+
+    const daysInMonth: number = new Date(year, month, 0).getDate();
+    const firstDayOfMonth: Date = new Date(year, month - 1, 1);
+    const firstWeekday: number = (firstDayOfMonth.getDay() + 6) % 7;
+
+    const days: (number | null)[] = [];
+    for (let i = 0; i < firstWeekday; i++) {
+        days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+        days.push(i);
+    }
+
+    return days;
+}
+
 const styles = StyleSheet.create({
+    screen: {
+        flex: 1,
+    },
     titleContainer: {
         marginTop: 100,
         alignItems: 'center',
@@ -94,6 +150,14 @@ const styles = StyleSheet.create({
         gap: 8,
         marginBottom: 8,
         alignItems: 'center',
+    },
+    calendarContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    calendarDay: {
+        width: '14.2857%',
+        textAlign: 'center',
     },
     stepContainer: {
         paddingTop: 20,
