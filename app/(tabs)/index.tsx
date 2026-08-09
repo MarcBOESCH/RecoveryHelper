@@ -1,98 +1,104 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import {useEffect, useState} from 'react';
+import {Pressable, StyleSheet} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import {ThemedText} from '@/components/themed-text';
+import {ThemedView} from '@/components/themed-view';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    const [completedDates, setCompletedDates] = useState<string[]>([]);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+    // Load completed dates from AsyncStorage
+    useEffect(() => {
+        async function loadCompletedDates() {
+            const storedDates: string | null = await AsyncStorage.getItem('completedDates');
+            if (storedDates !== null) {
+                const parsedDates: string[] = JSON.parse(storedDates);
+                setCompletedDates(parsedDates);
+            }
+        }
+
+        loadCompletedDates();
+    }, []);
+
+    const today: string = new Date().toISOString().split('T')[0];
+
+    const currentStreak: number = calculateStreak(completedDates);
+    const completedToday: boolean = completedDates.includes(today);
+
+    return (
+        <ThemedView>
+            <ThemedView style={styles.titleContainer}>
+                <ThemedText type="title">My Streak App</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.streakContainer}>
+                <ThemedText type="subtitle">My Streak</ThemedText>
+                <ThemedText type="subtitle">🔥 {currentStreak} days</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.stepContainer}>
+                <Pressable style={() => [
+                    styles.completeButton, completedToday && styles.completedButton]}
+                           onPress={async () => {
+                    if (!completedToday) {
+                        const updatedDates: string[] = [...completedDates, today];
+                        setCompletedDates(updatedDates);
+                        await AsyncStorage.setItem('completedDates', JSON.stringify(updatedDates));
+
+                    }
+                }}>
+                    <ThemedText style={styles.buttonText}>{completedToday ? 'Awesome!' : 'Did you make it?'}</ThemedText>
+                </Pressable>
+            </ThemedView>
+        </ThemedView>
+    );
+}
+
+function calculateStreak(completedDates: string[]): number {
+    let streak: number = 0;
+    let dateToCheck: Date = new Date();
+    let dateToCheckString: string = dateToCheck.toISOString().split('T')[0];
+
+    if (!completedDates.includes(dateToCheckString)) {
+      dateToCheck.setDate(dateToCheck.getDate() - 1);
+      dateToCheckString = dateToCheck.toISOString().split('T')[0];
+    }
+
+    while (completedDates.includes(dateToCheckString)) {
+        streak++;
+        dateToCheck.setDate(dateToCheck.getDate() - 1);
+        dateToCheckString = dateToCheck.toISOString().split('T')[0];
+    }
+    return streak;
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+    titleContainer: {
+        marginTop: 100,
+        alignItems: 'center',
+        gap: 8,
+    },
+    streakContainer: {
+        paddingTop: 10,
+        gap: 8,
+        marginBottom: 8,
+        alignItems: 'center',
+    },
+    stepContainer: {
+        paddingTop: 20,
+        alignItems: 'center',
+        gap: 8,
+    },
+    completeButton: {
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        borderRadius: 12,
+        backgroundColor: '#222',
+    },
+    completedButton: {
+        opacity: 0.6,
+    },
+    buttonText: {
+        color: 'white',
+        fontWeight: '600',
+    },
 });
