@@ -7,7 +7,10 @@ import {ThemedView} from '@/components/themed-view';
 
 export default function HomeScreen() {
     const [completedDates, setCompletedDates] = useState<string[]>([]);
+
     const weekdays: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat','Sun'];
+    const months: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 
     // Load completed dates from AsyncStorage
     useEffect(() => {
@@ -24,13 +27,28 @@ export default function HomeScreen() {
 
     const today: Date = new Date();
     const todayString: string = getLocalDateString(today);
-    const currentMonth: number = today.getMonth();
-    const currentYear: number = today.getFullYear();
 
-    const daysInCurrentMonth: (number | null)[] = getDaysInCurrentMonth();
+    const [displayedCalendarDate, setDisplayedCalendarDate] = useState<Date>(today);
+    const displayedCalendarMonth: number = displayedCalendarDate.getMonth();
+    const displayedCalendarYear: number = displayedCalendarDate.getFullYear();
+
+    const daysInCurrentMonth: (number | null)[] = getDaysInCurrentMonth(displayedCalendarDate);
 
     const currentStreak: number = calculateStreak(completedDates);
     const completedToday: boolean = completedDates.includes(todayString);
+
+
+    function showPreviousMonth(): void {
+        const newDate = new Date(displayedCalendarYear, displayedCalendarMonth - 1, 1);
+
+        setDisplayedCalendarDate(newDate);
+    }
+
+    function showNextMonth(): void {
+        const newDate = new Date(displayedCalendarYear, displayedCalendarMonth + 1, 1);
+
+        setDisplayedCalendarDate(newDate);
+    }
 
     return (
         <ThemedView style={styles.screen}>
@@ -39,8 +57,24 @@ export default function HomeScreen() {
                     <ThemedText type="title">RecoveryHelper</ThemedText>
                 </ThemedView>
                 <ThemedView style={styles.streakContainer}>
-                    <ThemedText type="subtitle">My Streak</ThemedText>
-                    <ThemedText type="subtitle">🔥 {currentStreak} days</ThemedText>
+                    <ThemedText style={styles.streakText}>🔥 {currentStreak} {(currentStreak === 1) ? 'Day' : 'Days'}</ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.calendarMonthYearContainer}>
+                    <Pressable onPress={showPreviousMonth}>
+                        <ThemedText style={styles.calenderMonthYearText}>
+                            ←
+                        </ThemedText>
+                    </Pressable>
+
+                    <ThemedText style={styles.calenderMonthYearText}>
+                         {months[displayedCalendarMonth]} {displayedCalendarYear}
+                    </ThemedText>
+
+                    <Pressable onPress={showNextMonth}>
+                        <ThemedText style={styles.calenderMonthYearText}>
+                            →
+                        </ThemedText>
+                    </Pressable>
                 </ThemedView>
                 <ThemedView style={styles.calendarContainer}>
                     {weekdays.map((day: string) => (
@@ -56,13 +90,30 @@ export default function HomeScreen() {
                             )
                         }
 
-                        const dateForDay = new Date(currentYear, currentMonth, day);
+                        const dateForDay = new Date(displayedCalendarYear, displayedCalendarMonth, day);
                         const dateString: string = getLocalDateString(dateForDay)
+
+                        const isToday: boolean = dateString === todayString;
                         const completed: boolean = completedDates.includes(dateString);
                         return (
-                            <ThemedText key={index} type="default" style={styles.calendarDay}>
-                                {completed ? day + ' ✓' : day}
-                            </ThemedText>
+                            <ThemedView key={index} style={styles.calendarDayCell}>
+                                <ThemedView
+                                    style={[
+                                        styles.dayCircle,
+                                        isToday && styles.todayCircle,
+                                        completed && styles.completedDayCircle,
+                                    ]}
+                                >
+                                    <ThemedText
+                                        style={[
+                                            styles.calendarDayText,
+                                            completed && styles.completedDayText,
+                                        ]}
+                                    >
+                                        {day}
+                                    </ThemedText>
+                                </ThemedView>
+                            </ThemedView>
                         );
                     })}
                 </ThemedView>
@@ -116,10 +167,9 @@ function getLocalDateString(date: Date): string {
     return `${year}-${monthString}-${dayString}`;
 }
 
-function getDaysInCurrentMonth(): (number | null)[] {
-    const today: Date = new Date();
-    const month: number = today.getMonth() + 1;
-    const year: number = today.getFullYear();
+function getDaysInCurrentMonth(date: Date): (number | null)[] {
+    const month: number = date.getMonth() + 1;
+    const year: number = date.getFullYear();
 
     const daysInMonth: number = new Date(year, month, 0).getDate();
     const firstDayOfMonth: Date = new Date(year, month - 1, 1);
@@ -140,39 +190,94 @@ const styles = StyleSheet.create({
     screen: {
         flex: 1,
     },
+
     titleContainer: {
         marginTop: 100,
+        paddingBottom: 20,
         alignItems: 'center',
         gap: 8,
     },
+
     streakContainer: {
-        paddingTop: 10,
+        marginTop: 10,
         gap: 8,
         marginBottom: 8,
         alignItems: 'center',
     },
+    streakText: {
+        marginBottom: 20,
+        fontSize: 40,
+        lineHeight: 50,
+        fontWeight: 'bold',
+    },
+
+    calendarMonthYearContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 8,
+        marginBottom: 10,
+    },
+    calenderMonthYearText: {
+        fontSize: 20,
+        fontWeight: 700,
+    },
+
     calendarContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
+        paddingHorizontal: 20,
     },
     calendarDay: {
         width: '14.2857%',
         textAlign: 'center',
+        opacity: 0.7,
     },
+    calendarDayCell: {
+        width: '14.2857%',
+        aspectRatio: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    calendarDayText: {
+        textAlign: 'center',
+    },
+    completedDayText: {
+        color: 'white',
+        fontWeight: '600',
+    },
+    dayCircle: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    completedDayCircle: {
+        backgroundColor: '#84cc16',
+        borderWidth: 0,
+    },
+    todayCircle: {
+        borderWidth: 2,
+        borderColor: '#84cc16'
+    },
+
     stepContainer: {
         paddingTop: 20,
         alignItems: 'center',
         gap: 8,
     },
+
     completeButton: {
         paddingVertical: 14,
         paddingHorizontal: 24,
         borderRadius: 12,
         backgroundColor: '#222',
     },
+
     completedButton: {
         opacity: 0.6,
     },
+
     buttonText: {
         color: 'white',
         fontWeight: '600',
