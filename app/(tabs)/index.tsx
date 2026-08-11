@@ -1,27 +1,24 @@
 import {useEffect, useState} from 'react';
 import {Pressable, ScrollView, StyleSheet} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {ThemedText} from '@/components/themed-text';
 import {ThemedView} from '@/components/themed-view';
 import {Calendar} from "@/components/calendar";
 import {getLocalDateString} from "@/utils/date"
 import {calculateStreak} from "@/utils/streak";
+import {loadCompletedDates, saveCompletedDates} from '@/utils/storage';
 
 export default function HomeScreen() {
     const [completedDates, setCompletedDates] = useState<string[]>([]);
 
     // Load completed dates from AsyncStorage
     useEffect(() => {
-        async function loadCompletedDates() {
-            const storedDates: string | null = await AsyncStorage.getItem('completedDates');
-            if (storedDates !== null) {
-                const parsedDates: string[] = JSON.parse(storedDates);
-                setCompletedDates(parsedDates);
+        async function loadDates(): Promise<void> {
+            const storedDates: string[] = await loadCompletedDates();
+            setCompletedDates(storedDates);
             }
-        }
 
-        loadCompletedDates();
+            loadDates();
     }, []);
 
     const today: Date = new Date();
@@ -36,7 +33,7 @@ export default function HomeScreen() {
             const updatedDates: string[] = [...completedDates, date];
 
             setCompletedDates(updatedDates);
-            await AsyncStorage.setItem('completedDates', JSON.stringify(updatedDates));
+            await saveCompletedDates(updatedDates);
 
         }
     }
@@ -45,7 +42,7 @@ export default function HomeScreen() {
         if (completedDates.includes(date)) {
             const updatedDates: string[] = completedDates.filter(completedDate => completedDate !== date);
             setCompletedDates(updatedDates);
-            await AsyncStorage.setItem('completedDates', JSON.stringify(updatedDates));
+            await saveCompletedDates(updatedDates);
         }
     }
 
