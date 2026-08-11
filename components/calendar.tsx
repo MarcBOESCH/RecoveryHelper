@@ -21,6 +21,9 @@ export function Calendar({completedDates, todayString}: CalendarProps) {
 
     const daysInCurrentMonth: (number | null)[] = getDaysInCurrentMonth(displayedCalendarDate);
 
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
     function showPreviousMonth(): void {
         const newDate = new Date(displayedCalendarYear, displayedCalendarMonth - 1, 1);
 
@@ -71,19 +74,24 @@ export function Calendar({completedDates, todayString}: CalendarProps) {
 
                     const isToday: boolean = dateString === todayString;
                     const completed: boolean = completedDates.includes(dateString);
+
+                    const isPast: boolean = dateForDay < startOfToday;
+                    const missed: boolean = isPast && !completed;
+
                     return (
                         <ThemedView key={index} style={styles.calendarDayCell}>
                             <ThemedView
                                 style={[
                                     styles.dayCircle,
                                     isToday && styles.todayCircle,
+                                    missed && styles.missedDayCircle,
                                     completed && styles.completedDayCircle,
                                 ]}
                             >
                                 <ThemedText
                                     style={[
                                         styles.calendarDayText,
-                                        completed && styles.completedDayText,
+                                        (completed || missed) && styles.markedDayText,
                                     ]}
                                 >
                                     {day}
@@ -147,7 +155,7 @@ const styles = StyleSheet.create({
     calendarDayText: {
         textAlign: 'center',
     },
-    completedDayText: {
+    markedDayText: {
         color: 'white',
         fontWeight: '600',
     },
@@ -165,5 +173,8 @@ const styles = StyleSheet.create({
     todayCircle: {
         borderWidth: 2,
         borderColor: '#84cc16'
+    },
+    missedDayCircle: {
+        backgroundColor: '#ef4444',
     },
 });
