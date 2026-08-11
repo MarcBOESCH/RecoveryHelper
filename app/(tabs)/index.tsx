@@ -26,10 +26,28 @@ export default function HomeScreen() {
 
     const today: Date = new Date();
     const todayString: string = getLocalDateString(today);
+    const [selectedDate, setSelectedDate] = useState<string>(todayString);
 
     const currentStreak: number = calculateStreak(completedDates);
-    const completedToday: boolean = completedDates.includes(todayString);
+    const completedSelectedDate: boolean = completedDates.includes(selectedDate);
 
+    async function completeDate(date: string): Promise<void> {
+        if (!completedDates.includes(date)) {
+            const updatedDates: string[] = [...completedDates, date];
+
+            setCompletedDates(updatedDates);
+            await AsyncStorage.setItem('completedDates', JSON.stringify(updatedDates));
+
+        }
+    }
+
+    async function removeCompletedDate(date: string): Promise<void> {
+        if (completedDates.includes(date)) {
+            const updatedDates: string[] = completedDates.filter(completedDate => completedDate !== date);
+            setCompletedDates(updatedDates);
+            await AsyncStorage.setItem('completedDates', JSON.stringify(updatedDates));
+        }
+    }
 
     return (
         <ThemedView style={styles.screen}>
@@ -40,26 +58,36 @@ export default function HomeScreen() {
                 </ThemedView>
 
                 <ThemedView style={styles.streakContainer}>
-                    <ThemedText style={styles.streakText}>🔥 {currentStreak} {(currentStreak === 1) ? 'Day' : 'Days'}</ThemedText>
+                    <ThemedText
+                        style={styles.streakText}>🔥 {currentStreak} {(currentStreak === 1) ? 'Day' : 'Days'}</ThemedText>
                 </ThemedView>
 
-                <Calendar completedDates={completedDates} todayString={todayString}></Calendar>
+                <Calendar completedDates={completedDates} todayString={todayString}
+                          onSelectDate={setSelectedDate} selectedDate={selectedDate}></Calendar>
 
-                <ThemedView style={styles.stepContainer}>
-                    <Pressable style={() => [
-                        styles.completeButton, completedToday && styles.completedButton]}
-                               onPress={async () => {
-                                   if (!completedToday) {
-                                       const updatedDates: string[] = [...completedDates, todayString];
-                                       setCompletedDates(updatedDates);
-                                       await AsyncStorage.setItem('completedDates', JSON.stringify(updatedDates));
+                <ThemedView style={styles.markDatesContainer}>
+                    <ThemedText style={styles.markDatesText}>
+                        {completedSelectedDate ? 'Awesome!' : 'Did you make it today?'}
+                    </ThemedText>
 
-                                   }
-                               }}>
-                        <ThemedText
-                            style={styles.buttonText}>{completedToday ? 'Awesome!' : 'Did you make it?'}
-                        </ThemedText>
-                    </Pressable>
+                    <ThemedView style={styles.markDatesButtonContainer}>
+                        <Pressable disabled={!completedSelectedDate}
+                                   style={[styles.markButton, styles.buttonRed, !completedSelectedDate && styles.disabledButton]}
+                                   onPress={() => removeCompletedDate(selectedDate)}
+                        >
+                            <ThemedText style={styles.buttonText}>
+                                No
+                            </ThemedText>
+                        </Pressable>
+                        <Pressable disabled={completedSelectedDate}
+                                   style={[styles.markButton, styles.buttonGreen, completedSelectedDate && styles.disabledButton]}
+                                   onPress={() => completeDate(selectedDate)}
+                        >
+                            <ThemedText style={styles.buttonText}>
+                                Yes
+                            </ThemedText>
+                        </Pressable>
+                    </ThemedView>
                 </ThemedView>
             </ScrollView>
         </ThemedView>
@@ -91,24 +119,37 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 
-    stepContainer: {
-        paddingTop: 20,
+    markDatesContainer: {
+        justifyContent: 'center',
         alignItems: 'center',
-        gap: 8,
+    },
+    markDatesButtonContainer: {
+        flexDirection: 'row',
+        gap: 15,
+    },
+    markDatesText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 15,
     },
 
-    completeButton: {
+    markButton: {
+        width: '20%',
         paddingVertical: 14,
         paddingHorizontal: 24,
         borderRadius: 12,
-        backgroundColor: '#222',
     },
-
-    completedButton: {
+    buttonRed: {
+        backgroundColor: '#ef4444',
+    },
+    buttonGreen: {
+        backgroundColor: '#84cc16',
+    },
+    disabledButton: {
         opacity: 0.6,
     },
-
     buttonText: {
+        textAlign: 'center',
         color: 'white',
         fontWeight: '600',
     },

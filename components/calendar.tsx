@@ -12,9 +12,11 @@ const MONTHS: string[] = ['January', 'February', 'March', 'April', 'May', 'June'
 type CalendarProps = {
     completedDates: string[];
     todayString: string;
+    selectedDate: string;
+    onSelectDate: (date: string) => void;
 }
 
-export function Calendar({completedDates, todayString}: CalendarProps) {
+export function Calendar({completedDates, todayString, selectedDate, onSelectDate}: CalendarProps) {
     const [displayedCalendarDate, setDisplayedCalendarDate] = useState<Date>(new Date());
     const displayedCalendarMonth: number = displayedCalendarDate.getMonth();
     const displayedCalendarYear: number = displayedCalendarDate.getFullYear();
@@ -75,28 +77,35 @@ export function Calendar({completedDates, todayString}: CalendarProps) {
                     const isToday: boolean = dateString === todayString;
                     const completed: boolean = completedDates.includes(dateString);
 
+                    const isFuture: boolean = dateForDay > startOfToday;
                     const isPast: boolean = dateForDay < startOfToday;
                     const missed: boolean = isPast && !completed;
 
+                    const isSelected: boolean = dateString === selectedDate;
+
                     return (
                         <ThemedView key={index} style={styles.calendarDayCell}>
-                            <ThemedView
+                            <Pressable
+                                disabled={isFuture}
+                                onPress={() => onSelectDate(dateString)}
                                 style={[
                                     styles.dayCircle,
-                                    isToday && styles.todayCircle,
                                     missed && styles.missedDayCircle,
                                     completed && styles.completedDayCircle,
+                                    isSelected && styles.selectedDayCircle,
                                 ]}
                             >
+
                                 <ThemedText
                                     style={[
                                         styles.calendarDayText,
-                                        (completed || missed) && styles.markedDayText,
+                                        (isToday) && styles.todayText,
+                                        (completed || missed) && styles.markedDayText, (isToday) && styles.todayText
                                     ]}
                                 >
                                     {day}
                                 </ThemedText>
-                            </ThemedView>
+                            </Pressable>
                         </ThemedView>
                     );
                 })}
@@ -155,6 +164,9 @@ const styles = StyleSheet.create({
     calendarDayText: {
         textAlign: 'center',
     },
+    todayText: {
+        color: '#0ea5e9'
+    },
     markedDayText: {
         color: 'white',
         fontWeight: '600',
@@ -170,9 +182,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#84cc16',
         borderWidth: 0,
     },
-    todayCircle: {
-        borderWidth: 2,
-        borderColor: '#84cc16'
+    selectedDayCircle: {
+        borderWidth: 3,
+        borderColor: '#0ea5e9'
     },
     missedDayCircle: {
         backgroundColor: '#ef4444',
