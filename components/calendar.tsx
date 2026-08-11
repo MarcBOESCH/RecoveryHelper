@@ -90,6 +90,7 @@ export function Calendar({completedDates, todayString, selectedDate, onSelectDat
                                 onPress={() => onSelectDate(dateString)}
                                 style={[
                                     styles.dayCircle,
+                                    isFuture && styles.futureDay,
                                     missed && styles.missedDayCircle,
                                     completed && styles.completedDayCircle,
                                     isSelected && styles.selectedDayCircle,
@@ -99,7 +100,6 @@ export function Calendar({completedDates, todayString, selectedDate, onSelectDat
                                 <ThemedText
                                     style={[
                                         styles.calendarDayText,
-                                        (isToday) && styles.todayText,
                                         (completed || missed) && styles.markedDayText, (isToday) && styles.todayText
                                     ]}
                                 >
@@ -188,5 +188,8 @@ const styles = StyleSheet.create({
     },
     missedDayCircle: {
         backgroundColor: '#ef4444',
+    },
+    futureDay: {
+        opacity: 0.35,
     },
 });

@@ -67,7 +67,7 @@ export default function HomeScreen() {
 
                 <ThemedView style={styles.markDatesContainer}>
                     <ThemedText style={styles.markDatesText}>
-                        {completedSelectedDate ? 'Awesome!' : 'Did you make it today?'}
+                        {completedSelectedDate ? 'Awesome!' : 'Did you make it?'}
                     </ThemedText>
 
                     <ThemedView style={styles.markDatesButtonContainer}>
