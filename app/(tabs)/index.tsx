@@ -10,6 +10,12 @@ import {loadCompletedDates, saveCompletedDates} from '@/utils/storage';
 
 export default function HomeScreen() {
     const [completedDates, setCompletedDates] = useState<string[]>([]);
+    const [reasons, setReasons] = useState<string[]>([
+        'I want more energy',
+        'I want to feel better',
+        'For my relationship',
+        'Irgendwas sehr langes nur um zu Testen und noch weiter hahahahahahahahahahha'
+    ]);
 
     // Load completed dates from AsyncStorage
     useEffect(() => {
@@ -49,7 +55,6 @@ export default function HomeScreen() {
     return (
         <ThemedView style={styles.screen}>
             <ScrollView>
-
                 <ThemedView style={styles.titleContainer}>
                     <ThemedText type="title">RecoveryHelper</ThemedText>
                 </ThemedView>
@@ -85,6 +90,14 @@ export default function HomeScreen() {
                             </ThemedText>
                         </Pressable>
                     </ThemedView>
+                </ThemedView>
+
+                <ThemedView style={styles.reasonContainer}>
+                    {reasons.map((reason: string) => (
+                        <ThemedText key={reason} type="default" style={styles.reasonText}>
+                            {reason}
+                        </ThemedText>
+                    ))}
                 </ThemedView>
             </ScrollView>
         </ThemedView>
@@ -131,7 +144,7 @@ const styles = StyleSheet.create({
     },
 
     markButton: {
-        width: '20%',
+        width: 80,
         paddingVertical: 14,
         paddingHorizontal: 24,
         borderRadius: 12,
@@ -149,5 +162,18 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: 'white',
         fontWeight: '600',
+    },
+
+    reasonContainer: {
+        alignSelf: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        margin: 20,
+        borderColor: 'gray',
+    },
+    reasonText: {
+        fontWeight: '600',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
     },
 });
