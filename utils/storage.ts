@@ -12,3 +12,16 @@ export async function loadCompletedDates(): Promise<string[]> {
 export async function saveCompletedDates(completedDates: string[]): Promise<void> {
     await AsyncStorage.setItem('completedDates', JSON.stringify(completedDates));
 }
+
+export async function loadReasons(): Promise<string[]> {
+    const storedReasons: string | null = await AsyncStorage.getItem('reasons');
+    if (storedReasons !== null) {
+        return JSON.parse(storedReasons);
+    }
+
+    return [];
+}
+
+export async function saveReason(reasons: string[]): Promise<void> {
+    await AsyncStorage.setItem('reasons', JSON.stringify(reasons));
+}

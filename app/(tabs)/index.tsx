@@ -6,36 +6,40 @@ import {ThemedView} from '@/components/themed-view';
 import {Calendar} from "@/components/calendar";
 import {getLocalDateString} from "@/utils/date"
 import {calculateStreak} from "@/utils/streak";
-import {loadCompletedDates, saveCompletedDates} from '@/utils/storage';
+import {loadCompletedDates, loadReasons, saveCompletedDates, saveReason} from '@/utils/storage';
 
 export default function HomeScreen() {
     const [completedDates, setCompletedDates] = useState<string[]>([]);
 
-    const [reasons, setReasons] = useState<string[]>([
-        'I want more energy',
-        'I want to feel better',
-        'For my relationship',
-        'Irgendwas sehr langes nur um zu Testen und noch weiter hahahahahahahahahahha'
-    ]);
+    const [reasons, setReasons] = useState<string[]>([]);
     const [newReason, setNewReason] = useState<string>('');
 
-    function addReason(): void {
+    async function addReason(): Promise<void> {
         const trimmedReason: string = newReason.trim();
 
-        if (newReason.trim() !== '') {
-            setReasons([...reasons, trimmedReason]);
+        if (trimmedReason !== '') {
+            const updatedReasons: string[] = [...reasons, trimmedReason]
+
+            setReasons(updatedReasons);
+            await saveReason(updatedReasons)
+
             setNewReason('');
         }
     }
 
-    // Load completed dates from AsyncStorage
+    // Load data from AsyncStorage
     useEffect(() => {
-        async function loadDates(): Promise<void> {
+        async function loadData(): Promise<void> {
+
+            // Load completed dates
             const storedDates: string[] = await loadCompletedDates();
+            const storedReasons = await loadReasons();
+
             setCompletedDates(storedDates);
+            setReasons(storedReasons);
             }
 
-            loadDates();
+            loadData();
     }, []);
 
     const today: Date = new Date();
