@@ -1,31 +1,15 @@
 import {useEffect, useState} from 'react';
-import {Pressable, ScrollView, StyleSheet, TextInput} from 'react-native';
+import {Pressable, ScrollView, StyleSheet} from 'react-native';
 
 import {ThemedText} from '@/components/themed-text';
 import {ThemedView} from '@/components/themed-view';
 import {Calendar} from "@/components/calendar";
 import {getLocalDateString} from "@/utils/date"
 import {calculateStreak} from "@/utils/streak";
-import {loadCompletedDates, loadReasons, saveCompletedDates, saveReason} from '@/utils/storage';
+import {loadCompletedDates, loadReasons, saveCompletedDates} from '@/utils/storage';
 
 export default function HomeScreen() {
     const [completedDates, setCompletedDates] = useState<string[]>([]);
-
-    const [reasons, setReasons] = useState<string[]>([]);
-    const [newReason, setNewReason] = useState<string>('');
-
-    async function addReason(): Promise<void> {
-        const trimmedReason: string = newReason.trim();
-
-        if (trimmedReason !== '') {
-            const updatedReasons: string[] = [...reasons, trimmedReason]
-
-            setReasons(updatedReasons);
-            await saveReason(updatedReasons)
-
-            setNewReason('');
-        }
-    }
 
     // Load data from AsyncStorage
     useEffect(() => {
@@ -33,10 +17,8 @@ export default function HomeScreen() {
 
             // Load completed dates
             const storedDates: string[] = await loadCompletedDates();
-            const storedReasons = await loadReasons();
 
             setCompletedDates(storedDates);
-            setReasons(storedReasons);
             }
 
             loadData();
@@ -106,31 +88,6 @@ export default function HomeScreen() {
                         </Pressable>
                     </ThemedView>
                 </ThemedView>
-
-                <ThemedView style={styles.reasonContainer}>
-                    {reasons.map((reason: string) => (
-                        <ThemedText key={reason} type="default" style={styles.reasonText}>
-                            {reason}
-                        </ThemedText>
-                    ))}
-                    <ThemedView style={styles.newReasonContainer}>
-                        <TextInput value={newReason}
-                                   onChangeText={setNewReason}
-                                   onSubmitEditing={addReason}
-                                   returnKeyType="done"
-                                   placeholder="Add a reason"
-                                   style={styles.newReasonInput}
-                        >
-
-                        </TextInput>
-                        <Pressable
-                            style={styles.newReasonButton}
-                            onPress={addReason}
-                        >
-                            <ThemedText style={styles.newReasonButtonText}>+</ThemedText>
-                        </Pressable>
-                    </ThemedView>
-                </ThemedView>
             </ScrollView>
         </ThemedView>
     );
@@ -196,48 +153,5 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: 'white',
         fontWeight: '600',
-    },
-
-    reasonContainer: {
-        alignSelf: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderRadius: 12,
-        margin: 20,
-        borderColor: '#84cc16',
-    },
-    reasonText: {
-        fontWeight: '600',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-    },
-
-    newReasonContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    newReasonInput: {
-        width: 200,
-        borderWidth: 2,
-        borderRadius: 6,
-        borderColor: '#84cc16',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        margin: 10,
-
-    },
-    newReasonButton: {
-        width: 29,
-        height: 29,
-        borderWidth: 2,
-        borderRadius: 6,
-        borderColor: '#84cc16',
-        alignItems: 'center',
-    },
-    newReasonButtonText: {
-        color: '#84cc16',
-        fontWeight: '700',
-        fontSize: 20,
     },
 });

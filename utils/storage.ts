@@ -22,6 +22,6 @@ export async function loadReasons(): Promise<string[]> {
     return [];
 }
 
-export async function saveReason(reasons: string[]): Promise<void> {
+export async function saveReasons(reasons: string[]): Promise<void> {
     await AsyncStorage.setItem('reasons', JSON.stringify(reasons));
 }
